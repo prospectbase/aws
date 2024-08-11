@@ -1,15 +1,17 @@
 import { RDSDataClient, ExecuteStatementCommand, BatchExecuteStatementCommand } from "@aws-sdk/client-rds-data";
 import { type SqlParameter } from "@aws-sdk/client-rds-data/dist-types/models/models_0";
 
-const version = "2.1 - 2024-07-24"; // Remove formatting, go straight to values
+const version = "2.2";
 
 // See https://docs.aws.amazon.com/amplify/latest/userguide/ssr-environment-variables.html
 const config: Record<string, any> = {
     region: process.env.DATA_API_ARN!.split(":")[3],
-    credentials: {
+}
+if (process.env.ACCESS_KEY_ID) {
+    config.credentials = {
         accessKeyId: process.env.ACCESS_KEY_ID,
         secretAccessKey: process.env.SECRET_ACCESS_KEY,
-    }
+    };
 }
 
 const database = {
@@ -19,12 +21,12 @@ const database = {
 };
 
 let index: RDSDataClient;
-console.log("Initializing data api", version, process.env.DATA_API_ARN);
+console.log("Initializing data api", version, process.env.DATA_API_ARN, config.credentials ? "using access key" : "using role");
 index = new RDSDataClient(config);
 execute("SELECT version()").then((rows) => {
     console.log("Connected to database", rows[0].version);
 }).catch((err) => {
-    console.error("Failed to connect to database");
+    console.error("Failed to connect to database", );
     console.error(err);
     throw err;
 });
