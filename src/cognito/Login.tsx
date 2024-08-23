@@ -2,15 +2,19 @@
 
 import "@/amplify-client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import {Button} from "@/components/ui/button";
-import { signIn, confirmSignIn, getCurrentUser } from 'aws-amplify/auth'
+import {signIn, confirmSignIn, getCurrentUser, signOut, } from 'aws-amplify/auth'
 
 interface AuthError extends Error {
     name: string;
 }
 
-export default function () {
+interface Props {
+    onLogin?: (id: string, email: string) => void
+}
+
+export default function({ onLogin }: Props) {
     const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -18,7 +22,7 @@ export default function () {
     const [repeat, setRepeat] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const [step, setStep] = useState("LOGIN");
+    const [step, setStep] = useState("");
 
     async function onSignIn() {
         setLoading(true);
@@ -27,6 +31,10 @@ export default function () {
             console.log(response)
             if (response.isSignedIn) {
                 // Success
+                const user = await getCurrentUser()
+                if (onLogin) {
+                    onLogin(user.userId, user.signInDetails?.loginId || "");
+                }
             } else {
                 if (response.nextStep.signInStep === "CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED") {
                     setPassword("");
@@ -62,8 +70,38 @@ export default function () {
         setLoading(false);
     }
 
+    async function checkLoggedin() {
+        try {
+            const user = await getCurrentUser();
+            console.log(user);
+            setStep("LOGOUT");
+            setEmail(user.signInDetails?.loginId || "");
+        }
+        catch {
+            setStep("LOGIN");
+        }
+    }
+
+    async function out() {
+        await signOut()
+        await checkLoggedin();
+        console.log("Signed out")
+    }
+
+    useEffect(() => {
+        checkLoggedin();
+    }, []);
+
     return (
         <div className="h-96 flex flex-col gap-3">
+            {step === "LOGOUT" && (
+                <>
+                    <div className="text-3xl font-medium text-muted text-center">{email}</div>
+                    <div className="flex justify-center mt-8">
+                        <Button variant="secondary" size="sm" onClick={out}>Logout</Button>
+                    </div>
+                </>
+            )}
             {step === "LOGIN" && (
                 <>
                     <div className="text-3xl font-medium text-muted text-center">Welcome</div>
