@@ -1,0 +1,78 @@
+.amplify-flex {
+    @apply flex gap-4;
+}
+.amplify-visually-hidden {
+    @apply hidden;
+}
+
+.amplify-heading--3 {
+    @apply text-xl font-medium text-muted;
+}
+
+.amplify-field {
+    // Expand all the containers to the full width of their parent
+    .amplify-field-group,
+    .amplify-field-group__field-wrapper {
+        @apply w-full;
+    }
+    // Hide the label, relying on the placeholder text
+    .amplify-label {
+        @apply hidden;
+    }
+    // Style the actual input field
+    .amplify-input {
+        @apply w-full p-4 border border-gray-300 rounded-md outline-none focus:ring-1;
+    }
+}
+// Hide the show password icon
+.amplify-passwordfield {
+    .amplify-field-group__outer-end {
+        @apply hidden;
+    }
+}
+// Primary signin/submit button
+.amplify-button--primary {
+    @apply bg-primary text-white caption p-3 rounded-md mt-4 flex items-center justify-center text-lg;
+}
+// Links such as forgot password
+.amplify-button--link {
+    @apply cursor-pointer hover:text-blue-500 hover:underline;
+}
+// The error section
+.amplify-alert--error {
+    @apply items-center bg-red-50 text-red-400 border border-red-200 p-3 rounded-md flex gap-4;
+
+    .amplify-alert__dismiss {
+        @apply hidden;
+    }
+}
+
+// The loading circle
+.amplify-loader {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: white;
+    stroke-width: 2;
+}
+.amplify-loader circle {
+    transform-origin: center center;
+    animation-name: amplify-loader-circular;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-duration: 1s;
+}
+
+@keyframes amplify-loader-circular {
+    0% {
+        stroke-dasharray: 100% 200%;
+        transform: rotate(120deg);
+    }
+    50% {
+        stroke-dasharray: 20% 400%;
+    }
+    100% {
+        stroke-dasharray: 100% 200%;
+        transform: rotate(480deg);
+    }
+}

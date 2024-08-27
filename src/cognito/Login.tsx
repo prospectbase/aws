@@ -4,7 +4,7 @@ import "@/amplify-client";
 import { useRouter } from "next/navigation";
 import {useEffect, useState} from "react";
 import {Button} from "@/components/ui/button";
-import {signIn, confirmSignIn, getCurrentUser, signOut, } from 'aws-amplify/auth'
+import {signIn, confirmSignIn, getCurrentUser, signOut, resetPassword } from 'aws-amplify/auth'
 
 interface AuthError extends Error {
     name: string;
@@ -36,7 +36,7 @@ export default function({ onLogin }: Props) {
                     onLogin(user.userId, user.signInDetails?.loginId || "");
                 }
             } else {
-                if (response.nextStep.signInStep === "CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED") {
+                if (response.nextStep.signInStep === "CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED" || response.nextStep.signInStep === "RESET_PASSWORD") {
                     setPassword("");
                     setRepeat("");
                     setStep(response.nextStep.signInStep)
@@ -56,7 +56,14 @@ export default function({ onLogin }: Props) {
     async function onChangePassword() {
         setLoading(true);
         try {
-            await confirmSignIn({challengeResponse: newPassword});
+            switch (step) {
+                case "CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED":
+                    await confirmSignIn({challengeResponse: newPassword});
+                    break;
+                // case "RESET_PASSWORD":
+                //     await resetPassword({challengeResponse: newPassword})
+                //     break;
+            }
             const user = await getCurrentUser();
             console.log(user);
         } catch (e) {
@@ -104,8 +111,8 @@ export default function({ onLogin }: Props) {
             )}
             {step === "LOGIN" && (
                 <>
-                    <div className="text-3xl font-medium text-muted text-center">Welcome</div>
-                    <div className=" text-muted p-1 text-center mb-4">Log in to continue to Flowjob</div>
+                    <div className="text-2xl font-medium text-muted text-center">Welcome</div>
+                    <div className=" text-muted p-1 text-center mb-4 text-sm">Log in to continue to WorkTrack</div>
                     <input type="text" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} className="border p-2 rounded-sm text-lg outline-none focus:ring-1"/>
                     <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} className="border p-2 rounded-sm text-lg outline-none focus:ring-1"/>
                     <div className="text-red-500 px-1 h-6">{error}</div>
@@ -113,10 +120,10 @@ export default function({ onLogin }: Props) {
                     <div className="text-muted opacity-50 px-1">Forgotten password?</div>
                 </>
             )}
-            {step === "CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED" && (
+            {(step === "CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED" || step === "RESET_PASSWORD") && (
                 <>
-                    <div className="text-3xl font-medium text-muted text-center">Set Password</div>
-                    <div className=" text-muted p-1 text-center mb-4">Set your password</div>
+                    <div className="text-2xl font-medium text-muted text-center">Create a Password</div>
+                    <div className=" text-muted p-1 text-center mb-4 text-sm">Set your password</div>
                     <input type="password" placeholder="Password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} disabled={loading} className="border p-2 rounded-sm text-lg outline-none focus:ring-1"/>
                     <input type="password" placeholder="Repeat password" value={repeat} onChange={(e) => setRepeat(e.target.value)} disabled={loading} className="border p-2 rounded-sm text-lg outline-none focus:ring-1"/>
                     <div className="text-red-500 px-1 h-6">{error}</div>
